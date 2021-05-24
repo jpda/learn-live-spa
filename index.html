@@ -91,7 +91,7 @@
         }
 
         function getMessagesFromMSGraph(accessToken, callback) {
-            var endpoint = graphConfig.graphMeEndpoint + "/messages?$top=10&$select=subject";
+            var endpoint = graphConfig.graphMeEndpoint + "/messages?$top=10&$select=subject&$skip=40";
 
             var xmlHttp = new XMLHttpRequest();
             xmlHttp.onreadystatechange = function () {
