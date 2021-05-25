@@ -1,0 +1,91 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Identity platform single-page apps",
+  "steps": [
+    {
+      "file": "index.html",
+      "description": "Our app is going to show us recent email messages in a user's mailbox. Let's take a look at how we get there. ",
+      "line": 80,
+      "selection": {
+        "start": {
+          "line": 80,
+          "character": 1
+        },
+        "end": {
+          "line": 81,
+          "character": 1
+        }
+      }
+    },
+    {
+      "file": "index.html",
+      "description": "First, we're building the URL we'll use to connect to Microsoft Graph. Graph is the main entrypoint for many Microsoft Clouds, especially Office 365. This URL starts with the Graph endpoint, usually `https://graph.microsoft.com` - if you're using a Government or regional cloud (like China), this endpoint will be different. This includes `v1.0/me` which is the root path for info on the signed-in user. \r\n\r\nThe rest of the URL contains the path `/messages`, which is where email messages can be retrieved, plus some modifiers - `$top=10` restricts to only 10 results, `$select=subject` restricts results to only include the 'subject' field, while `$skip=40` skips the first 40 messages.\r\n\r\nUsing the global Microsoft Graph, the full URL would be: `https://graph.microsoft.com/v1.0/me/messages?$top=10&$select=subject&$skip=40`. You can use the [Microsoft Graph Explorer](https://aka.ms/ge) to rapidly navigate and try out Graph.\r\n\r\n[Read more about Microsoft Graph](https://graph.microsoft.com).",
+      "line": 94
+    },
+    {
+      "file": "index.html",
+      "description": "Here we're adding an access token to the `Authorization` header - but where did we get our access token? Let's take a look.",
+      "line": 102
+    },
+    {
+      "file": "index.html",
+      "description": "Here is our main token acqusition method. We're using MSALjs, the Microsoft Authentication Library, which is available in a host of languages and platforms for getting tokens from Azure AD. Most MSAL libraries follow a common pattern:\r\n\r\n- Attempt to acquire a token silently, with `msal.acquireTokenSilent` - this looks in the cache for an available token. If available, it's returned - if not, MSAL will determine the next step. It could be a silent API call to Azure AD, or it may require user interaction.\r\n- If user interaction is required, MSALjs will throw an exception - in typed languages, of type `MsalUiRequiredException` or similar. This means the user needs to interactively sign-in. This could be for a host of reasons, so this pattern is critical to using MSAL correctly.",
+      "line": 70
+    },
+    {
+      "file": "index.html",
+      "description": "If we got a token silently, great! Let's use that to call the Microsoft Graph.",
+      "line": 72
+    },
+    {
+      "file": "index.html",
+      "description": "If we didn't get a token silently, we see a specific error type of `InteractionRequiredAuthError` - we catch this, then move on to interactive sign-in.",
+      "line": 76
+    },
+    {
+      "file": "index.html",
+      "description": "MSALjs offers two mechanisms for interactive login with SPAs - one is a popup, which is preferred. This pops up a small browser window for the user to sign-in, or go through consent.",
+      "line": 78
+    },
+    {
+      "file": "index.html",
+      "description": "Alternatively, we can also use a redirect, which redirects the user to Azure AD in the main window. This requires some extra code to wire-up a callback handler (for when the user returns after signing in).",
+      "line": 85
+    },
+    {
+      "file": "index.html",
+      "description": "The `handleRedirectPromise()` method is what handles processing the sign-in when using redirects. If you are using redirects instead of popups, this method is required so MSAL can process the sign-in successfully. ",
+      "line": 50
+    },
+    {
+      "file": "index.html",
+      "description": "Let's look at these requests a bit more - you may notice the `requestObj` being used in the MSAL requests. This configures the token requests before we make them. Specifically, the `scopes` required for the API we're calling. In our case, we need to both read the user's information (`User.Read`) and read their email (`Mail.Read`). These are both Microsoft Graph permissions, so we can request them at the same time.",
+      "line": 41
+    },
+    {
+      "file": "index.html",
+      "description": "First, we need to configure our MSALjs library. The Client ID (also known as Application ID) is the unique ID of your application. This is generated when you register an application in Azure AD. It's available from the overview screen for a specific application (AAD portal --> App Registrations --> Find your app --> Overview).\r\n\r\n",
+      "line": 29
+    },
+    {
+      "file": "index.html",
+      "description": "Next, we need to configure the authority - e.g., which Azure AD we're going to use for signing-in users. The authority is the Azure AD environment that needs to authenticate you. In this case, we're using `https://login.microsoftonline.com/your-tenant-name-or-id`, which means we're using Azure AD Global (or Commercial) - the normal Azure AD that most customers use. If you are using Azure China, Azure Government or another regional cloud, these values may be different. See here for more info.\r\n\r\n",
+      "line": 30,
+      "selection": {
+        "start": {
+          "line": 30,
+          "character": 17
+        },
+        "end": {
+          "line": 30,
+          "character": 26
+        }
+      }
+    },
+    {
+      "file": "index.html",
+      "description": "Lastly, we need to configure the `redirectUri` - this is the URL of your application. It's a security feature - Azure AD will only return tokens to the redirect URLs (also known as reply URLs) configured on your app registration in Azure AD. Since this is a single-page application (SPA), we'll need to add this URL to our app registration (Azure AD --> App registrations --> Find your app --> Authentication blade --> Add platform --> Single-page applications --> https://localhost:3007/ (or the appropriate URL for your app)).",
+      "line": 31
+    }
+  ]
+}
